@@ -1,7 +1,7 @@
 // Inicializar el proveedor de credenciales de Amazon Cognito
-AWS.config.region = 'us-east-2'; // Región
+AWS.config.region = 'us-east-1'; // Región
 AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-    IdentityPoolId: 'us-east-2:48f67d36-469f-4a9c-bc43-069d1e5ecf23',
+    IdentityPoolId: 'us-east-1:5f35d966-ac6d-44c4-8b0c-fba5162641af',
 });
 
 // Set up connection with DynamoDB.
@@ -28,7 +28,7 @@ function getLatestValue() {
             "#id": "id"
         },
         ProjectionExpression: '#id',
-        TableName: 'WeatherData'
+        TableName: 'ESTACION_SMART_AGRICULTURE_PRO'
     };
 
     docClient.scan(params, onScan);
@@ -48,9 +48,9 @@ function getLatestValue() {
             stations.forEach(function (id) {
                 //Parameters of the query.
                 var params = {
-                    TableName: "WeatherData",
+                    TableName: "ESTACION_SMART_AGRICULTURE_PRO",
                     //ProjectionExpression: "#dtime, temperature, humidity, windDirection, windIntensity, rainHeight",
-                    ProjectionExpression: "#dtime, temperature, humidity, windDirection, windIntensity, rainHeight",
+                    ProjectionExpression: "#dtime, hsoil, humedad, presion, temperatura",
                     KeyConditionExpression: "id = :stationId",
                     ExpressionAttributeNames: {
                         "#dtime": "datetime"
@@ -74,20 +74,21 @@ function getLatestValue() {
                         // Since that the list is ordered from the oldest to
                         // the newest value, I have to reverse it.
                         var latest = data.Items.reverse()[0];
-                        console.log("success");
+                        console.log("successE");
+                        console.log(latest)
 
                         // Insert latest value for each sensor.
-                        document.getElementById('latest-value1').innerHTML = latest.temperature + ' °C';
+                        document.getElementById('latest-value1').innerHTML = latest.temperatura + ' °C';
 						//document.getElementById('latest-value1-copy').innerHTML = latest.temperature + ' °C';
-                        document.getElementById('latest-value2').innerHTML = latest.humidity + '%';
-                        document.getElementById('latest-value3').innerHTML = latest.windDirection + '°';
+                        document.getElementById('latest-value2').innerHTML = latest.humedad + ' %';
+                        document.getElementById('latest-value3').innerHTML = latest.temperatura + ' °C';
                         //document.getElementById('latest-value3').innerHTML = latest.rainHeight + ' %';
-                        document.getElementById('latest-value4').innerHTML = latest.windIntensity + ' km/h';
-                        document.getElementById('latest-value5').innerHTML = latest.rainHeight + ' mm/h';
+                        document.getElementById('latest-value4').innerHTML = latest.presion + ' Pa';
+                        document.getElementById('latest-value5').innerHTML = latest.hsoil + ' Hz';
 						//document.getElementById('latest-value4-copy').innerHTML = latest.soilMoisture + '%';
 						
                         // para el caso de la humedad ambiental
-						if(Number(latest.humidity) <= 40){
+						/*if(Number(latest.humidity) <= 40){
 							document.getElementById('humidity-status').innerHTML = 'Seco';
 							//console.log("seca");
 						}else if(Number(latest.humidity) <= 60 ){
@@ -96,9 +97,9 @@ function getLatestValue() {
 						}else {
 							document.getElementById('humidity-status').innerHTML = 'Muy húmedo';
 							
-						}
+						}*/
                         // para el caso de la dirección de viento
-						if(Number(latest.windDirection) == 0){
+						/*if(Number(latest.windDirection) == 0){
 							document.getElementById('wind-dir').innerHTML = 'Este';
 							//console.log("seca");
 						}else if(Number(latest.windDirection) <= 88 ){
@@ -125,10 +126,10 @@ function getLatestValue() {
                         }else {
 							document.getElementById('wind-dir').innerHTML = 'Este';
 							
-						}
+						}*/
 
                         // para el caso de la intensidad de viento
-						if(Number(latest.windIntensity) <= 2){
+						/*if(Number(latest.windIntensity) <= 2){
 							document.getElementById('wind-status').innerHTML = 'Calma';
 							//console.log("seca");
 						}else if(Number(latest.windIntensity) <= 6 ){
@@ -152,10 +153,10 @@ function getLatestValue() {
 						}else {
 							document.getElementById('wind-status').innerHTML = 'Viento huracanado';
 							
-						}
+						}*/
 
 						// para el caso de la lluvia
-						if(Number(latest.rainHeight) == 0){
+						/*if(Number(latest.rainHeight) == 0){
 							document.getElementById('rain-status').innerHTML = 'Seca';
 							//console.log("seca");
 						}else if(Number(latest.rainHeight) <= 29 ){
@@ -170,7 +171,7 @@ function getLatestValue() {
 						}else {
 							document.getElementById('rain-status').innerHTML = 'Lluvia intensa';
 							console.log("llovizna");
-						}
+						}*/
                         var c;
                         var d;
                         // Change update on the cards.
@@ -197,7 +198,7 @@ function getLatestValue() {
                             //    '</td><td>' + actual[c].windDirection + '</td><td>' + actual[c].windIntensity + '</td><td>' + actual[c].rainHeight + '</td></tr> ';
                         //}
                         for (c = 0; c < 5; c++) {
-                            document.getElementById('station' +id).innerHTML += '<tr><td>' + actual[c].datetime + '</td><td>' + actual[c].temperature + '</td><td>' + actual[c].humidity + '</td><td>' + actual[c].windDirection + '</td><td>' + actual[c].windIntensity + '</td><td>' + actual[c].rainHeight + '</td></tr>';
+                            document.getElementById('station' +id).innerHTML += '<tr><td>' + actual[c].datetime + '</td><td>' + actual[c].temperatura + '</td><td>' + actual[c].humedad + '</td><td>' + actual[c].presion + '</td><td>' + actual[c].hsoil + '</td></tr>';
 							
                         }
 						
@@ -272,7 +273,7 @@ function getLastHourData(sensor) {
 
     // Parameters for the scan of the DB.
     var params = {
-        TableName: "WeatherData",
+        TableName: "ESTACION_SMART_AGRICULTURE_PRO",
         ProjectionExpression: "#dtime, #id, " + sensor,
         FilterExpression: "#dtime >= :lastHour",
         ExpressionAttributeNames: {
@@ -294,16 +295,16 @@ function getLastHourData(sensor) {
             var items = data.Items;
             var sizeList = Object.keys(items).length;
             for (c = 0; c < sizeList; c++) {
-                if (sensor === "temperature")
-                    document.getElementById('id' + sensor).innerHTML += '<tr><td>' + items[c].datetime + '</td><td>' + items[c].id + '</td><td class="text-primary">' + items[c].temperature + '</td></tr> ';
-                else if (sensor === "humidity")
-                    document.getElementById('id' + sensor).innerHTML += '<tr><td>' + items[c].datetime + '</td><td>' + items[c].id + '</td><td class="text-primary">' + items[c].humidity + '</td></tr> ';
+                if (sensor === "temperatura")
+                    document.getElementById('id' + sensor).innerHTML += '<tr><td>' + items[c].datetime + '</td><td>' + items[c].id + '</td><td class="text-primary">' + items[c].temperatura + '</td></tr> ';
+                else if (sensor === "humedad")
+                    document.getElementById('id' + sensor).innerHTML += '<tr><td>' + items[c].datetime + '</td><td>' + items[c].id + '</td><td class="text-primary">' + items[c].humedad + '</td></tr> ';
                 /*else if (sensor === "windDirection")
                     document.getElementById('id' + sensor).innerHTML += '<tr><td>' + items[c].datetime + '</td><td>' + items[c].id + '</td><td class="text-primary">' + items[c].windDirection '</td></tr> ';*/
-                else if (sensor === "rainHeight")
-                    document.getElementById('id' + sensor).innerHTML += '<tr><td>' + items[c].datetime + '</td><td>' + items[c].id + '</td><td class="text-primary">' + items[c].rainHeight + '</td></tr> ';
-                else if (sensor === "soilMoisture")
-                    document.getElementById('id' + sensor).innerHTML += '<tr><td>' + items[c].datetime + '</td><td>' + items[c].id + '</td><td class="text-primary">' + items[c].soilMoisture + '</td></tr> ';
+                else if (sensor === "presion")
+                    document.getElementById('id' + sensor).innerHTML += '<tr><td>' + items[c].datetime + '</td><td>' + items[c].id + '</td><td class="text-primary">' + items[c].presion + '</td></tr> ';
+                else if (sensor === "hsoil")
+                    document.getElementById('id' + sensor).innerHTML += '<tr><td>' + items[c].datetime + '</td><td>' + items[c].id + '</td><td class="text-primary">' + items[c].hsoil + '</td></tr> ';
             }
         }
     };
